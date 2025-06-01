@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Birthday Event Finder</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      padding: 30px 40px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #ffffff;
+      font-size: 28px;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      background-color: rgba(74, 144, 226, 0.8);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: rgba(74, 144, 226, 1);
+    }
+
+    #output {
+      margin-top: 25px;
+      text-align: left;
+      color: #f0f0f0;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    strong {
+      color: #aad4ff;
+    }
+
+    ::placeholder {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Existential Crisis Giver</h1>
+    <label for="birthdate">Select your birthdate:</label>
+    <input type="date" id="birthdate" />
+    <button onclick="getInfo()">Continue</button>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    function getInfo() {
+      const birthdateInput = document.getElementById("birthdate").value;
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = "";
+
+      if (!birthdateInput) {
+        outputDiv.innerHTML = "<p>Please select a valid birthdate.</p>";
+        return;
+      }
+
+      const birthdate = new Date(birthdateInput);
+      const birthYear = birthdate.getFullYear();
+      const today = new Date();
+      const diffDays = Math.floor((today - birthdate) / (1000 * 60 * 60 * 24));
+
+      const month = birthdate.getMonth() + 1;
+      const day = birthdate.getDate();
+
+      outputDiv.innerHTML = `<p><strong>Days since birth:</strong> ${diffDays}</p>`;
+
+      fetch(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch data from Wikipedia");
+          }
+          return response.json();
+        })
+        .then(data => {
+          const events = data.events
+            .filter(event => event.year >= birthYear)
+            .sort((a, b) => a.year - b.year);
+
+          if (events.length > 0) {
+            let eventsHTML = "<h3>Events on Your Birthday (After You Were Born):</h3><ul>";
+            events.forEach(event => {
+              eventsHTML += `<li><strong>${event.year}:</strong> ${event.text}</li>`;
+            });
+            eventsHTML += "</ul>";
+            outputDiv.innerHTML += eventsHTML;
+          } else {
+            outputDiv.innerHTML += "<p>No events found after your birth year for this date.</p>";
+          }
+        })
+        .catch(error => {
+          outputDiv.innerHTML += `<p>Error fetching events: ${error.message}</p>`;
+        });
+    }
+  </script>
+</body>
+</html>
